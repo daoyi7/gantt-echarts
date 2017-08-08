@@ -1,0 +1,30 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.main {
+    width: 100%;
+}
+
+.gantt, .line {
+    width: 49%;
+    float: left;
+}
+
+#viewCt {
+    width: 100%;
+}
+
+.btn {
+    padding: 5px 8px;
+    background: #32ceff;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn:focus, .btn:active {
+    outline: none;
+}
