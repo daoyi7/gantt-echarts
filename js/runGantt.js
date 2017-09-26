@@ -23,18 +23,19 @@ function runGantt(startDate, finishDate, speed, time) {
         finishDate = finishDate ||
             new Date(finishDateFN - ((finishDateFN.getHours() * 60 * 60 * 1000) + (finishDateFN.getMinutes() * 60 * 1000) + (finishDateFN.getSeconds() * 1000)))
 
-        var beginBtn = document.getElementById("beginBtn"),
-            pauseBtn = document.getElementById("pauseBtn"),
-            initBtn = document.getElementById("initBtn"),
-            todayBtn = document.getElementById("todayBtn"),
+        var fBackBtn = document.getElementById("fBackBtn"), //快退
+            backBtn = document.getElementById("backBtn"), //后退
+            beginBtn = document.getElementById("beginBtn"), //开始按钮
+            pauseBtn = document.getElementById("pauseBtn"), //暂停
+            stopBtn = document.getElementById("stopBtn"), //停止
+            forwardBtn = document.getElementById("forwardBtn"), //前进
+            fForwardBtn = document.getElementById("fForwardBtn"), //快进
+            todayBtn = document.getElementById("todayBtn"), //查看今天
             g = 0,
             e = 0,
             oneDay = 24 * 60 * 60 * 1000, //一天的毫秒数
             timer = null,
-            // runTime = new Date(+startDate - oneDay * 30),
             beginDate = new Date(+startDate - oneDay * 30), //开始日期是所给日期的前一个月，x轴原点为前一个月
-            // endDate = new Date(2007, 9, 5, 00, 00, 00),
-            // moreDate = new Date(2007, 0, 15, 00, 00, 00),
             yData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //提前定义折线图节点数组
             yDataB = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //提前定义折线图节点数组
             yDataC = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //提前定义折线图节点数组
@@ -451,7 +452,8 @@ function runGantt(startDate, finishDate, speed, time) {
             myChart.setOption(option, true)
         }
 
-        function gantt() {
+        // 前进运动函数
+        function fwGantt() {
 
             timeChooseInputValueArray = timeChooseInput.value.split(' ')
 
@@ -868,29 +870,100 @@ function runGantt(startDate, finishDate, speed, time) {
             }
         }
 
-        function startGantt() {
-            timer = setInterval(gantt, time)
+        // 后退运动函数
+        function bkGantt() {
+
+            timeChooseInputValueArray = timeChooseInput.value.split(' ')
+
+            valueStart = timeChooseInputValueArray[0] ? new Date(timeChooseInputValueArray[0]) : startDate
+            valueFinish = timeChooseInputValueArray[2] ? new Date(timeChooseInputValueArray[2]) : finishDate
+
+            //甘特图部分
+            g = g - 1
+            //  开始运动
+            var runDate = new Date((valueStart / 1000 + speed * g) * 1000)
+            project.setTimeLines([{
+                    date: valueFinish,
+                    text: endName,
+                    position: endPos,
+                    style: "width:" + endW + "px;background:" + endColor + ";"
+                },
+                {
+                    date: runDate,
+                    text: runName,
+                    position: runPos,
+                    style: "width:" + runW + "px;background:" + runColor + ";"
+                }
+            ]);
+            project.scrollToDate(runDate)
+
+
+
+            if (runDate / 1000 <= valueStart / 1000) {
+                clearInterval(timer)
+            }
         }
 
+        /**
+            运动计时器函数
+            开始函数
+        **/
+        function startGantt() {
+            clearInterval(timer)
+            timer = setInterval(fwGantt, time)
+        }
+
+        // 停止函数
         function pauseGantt() {
             clearInterval(timer)
         }
 
+        // 快退按钮事件
+        fBackBtn.onclick = function() {
+            clearInterval(timer)
+            timer = setInterval(bkGantt, time / 2)
+        }
+
+        // 后退按钮事件
+        backBtn.onclick = function() {
+            clearInterval(timer)
+            timer = setInterval(bkGantt, time)
+        }
+
+        // 开始按钮事件
         beginBtn.onclick = function() {
             startGantt()
         }
 
+        // 暂停按钮事件
         pauseBtn.onclick = function() {
             pauseGantt()
         }
 
-        initBtn.onclick = function() {
+        // 停止按钮事件
+        stopBtn.onclick = function() {
             clearInterval(timer)
             g = 0
 
-            timer = setInterval(gantt, time)
+            project.setTimeLines([{
+                date: startDate,
+                text: ' ',
+                position: runPos,
+                style: "width:" + tdyW + "px;background:transparent;"
+            }])
         }
 
+        // 前进按钮事件
+        forwardBtn.onclick = function() {
+
+        }
+
+        // 快进按钮事件
+        fForwardBtn.onclick = function() {
+
+        }
+
+        // 查看今天事件
         todayBtn.onclick = function() {
             let today = new Date()
 
