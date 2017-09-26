@@ -50,10 +50,13 @@ function runGantt(startDate, finishDate, speed, time) {
             endName = "终点线", //终点竖线的文字内容
             runPos = "bottom", //运动竖线的文字位置
             endPos = "top", //终点竖线的文字位置
+            tdyPos = "bottom", //今天竖线的文字位置
             runColor = "red", //运动竖线的颜色
             endColor = "green", //终点竖线的颜色
+            tdyColor = "#32ceff" //今天竖线的颜色
             runW = 2, //运动竖线的宽
             endW = 2, //终点竖线的宽
+            tdyW = 2, //今天竖线的宽度
             hourTime = 3600, //一小时的时间（秒数）
             dayTime = 86400; //一天的事件（秒数）
         speed = speed || dayTime; //定义运动竖线按什么速度走（一天或者一小时）
@@ -865,7 +868,6 @@ function runGantt(startDate, finishDate, speed, time) {
             }
         }
 
-
         function startGantt() {
             timer = setInterval(gantt, time)
         }
@@ -887,6 +889,20 @@ function runGantt(startDate, finishDate, speed, time) {
             g = 0
 
             timer = setInterval(gantt, time)
+        }
+
+        todayBtn.onclick = function() {
+            let today = new Date()
+
+            todayText = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
+
+            project.setTimeLines([{
+                date: today,
+                text: todayText,
+                position: runPos,
+                style: "width:" + tdyW + "px;background:" + tdyColor + ";"
+            }])
+            project.scrollToDate(today)
         }
     })
 }
