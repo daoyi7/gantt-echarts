@@ -16,6 +16,22 @@
     width: 100%;
 }
 
+.control {
+    padding: 5px 0 0 5px;
+    margin-bottom: 15px;
+}
+
+#timeChooseInput {
+    width: 150px;
+    padding-left: 10px;
+    height: 25px;
+    line-height: 1.3;
+    line-height: 38px\9;
+    border: 1px solid #e6e6e6;
+    background-color: #fff;
+    border-radius: 2px;
+}
+
 .btn {
     padding: 5px 8px;
     background: #32ceff;
