@@ -11,7 +11,6 @@ const fForwardBtn = document.querySelector("#fForwardBtn") //快进
 const todayBtn = document.querySelector("#todayBtn") //查看今天
 const timeChooseInput = document.querySelector("#timeChooseInput") // 日期选择框
 let g = 0
-let e = 0
 let timer = null
 
 
@@ -23,10 +22,15 @@ const data = $.ajax({
 })
 const dataEchart = JSON.parse(data.responseText)
 const LEN = dataEchart.data.length
+const dataTime = []
+
+for (var i = 0; i < LEN; i++) {
+    dataTime.push(dataEchart.data[i].SGRQ)
+}
 
 // 定义甘特图始末日期
-const startDateGantt = '2016-12-09T08:00:00'
-const FinishDateGantt = '2017-12-02T15:00:00'
+const startDateGantt = '2016-12-09T00:00:00'
+const FinishDateGantt = '2017-12-02T00:00:00'
 
 // 计算开始日期
 const startDateFN = new Date(dataEchart.data[0].SGRQ)
@@ -36,7 +40,9 @@ const finishDate = new Date(finishDateFN - ((finishDateFN.getHours() * 60 * 60 *
 //开始日期是所给日期的前一个月，x轴原点为前一个月
 const oneDay = 24 * 60 * 60 * 1000 //一天的毫秒数
 const oneMonth = 31
-const beginDate = new Date(+startDate - oneDay * 30)
+let beginDate = new Date(+startDate - oneDay * 31)
+log(beginDate)
+let pauseDate = null
 
 // 遍历每天的金额
 let yBCWP = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] //提前定义折线图节点数组
@@ -88,16 +94,8 @@ window.addEventListener("resize", function() {
 })
 
 
-let yData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //提前定义折线图节点数组
-    yDataB = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //提前定义折线图节点数组
-    yDataC = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //提前定义折线图节点数组
-    yAll = [0], //折线图节点和
-    yAllB = [0], //折线图节点和
-    yAllC = [0], //折线图节点和
-    yDataSort = [], //折线图节点和集
-    yDataSortB = [], //折线图节点和集
-    yDataSortC = [], //折线图节点和集
-    xCoord = [], //横坐标
+let xCoord = [], //横坐标
+    vxCoord = [],
     yCoord, //纵坐标
     runName = "时间线", //运动竖线的文字内容
     endName = "终点线", //终点竖线的文字内容
@@ -122,38 +120,1225 @@ for (var i = 0; i < 31; i++) {
     xCoord.push(xItem);
 }
 
-function runGantt() {
+option = {
+    title: {
+        text: '黑沙洲水道航道整治二期工程',
+        left: 'center'
+    },
+    tooltip: {
+        trigger: 'axis',
+        // formatter: '{a} <br/>{b} : {c}',
+        axisPointer: {
+            type: 'line',
+        },
+    },
+    legend: {
+        right: '2%',
+        top: '8%',
+        data: ['BCWP', 'BCWS', 'ACWP']
+    },
+    xAxis: {
+        type: 'category',
+        name: '日期',
+        boundaryGap: false,
+        splitLine: {
+            show: false
+        },
+        data: xCoord,
+    },
+    yAxis: {
+        type: 'value',
+        name: '总金额（万元）',
+        min: 0,
+        max: yCoord,
+        splitLine: {
+            show: false
+        },
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    series: [{
+            name: 'BCWP',
+            type: 'line',
+            itemStyle: {
+                normal: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0,
+                            color: 'red' // 0% 处的颜色
+                        }, {
+                            offset: 1,
+                            color: '#FFAF00' // 100% 处的颜色
+                        }],
+                        globalCoord: false // 缺省为 false
+                    }
+                }
+            },
+            markLine: {
+                silent: true,
+                lineStyle: {
+                    normal: {
+                        type: 'solid',
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: 'red' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#FFAF00' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        },
+                    }
+                },
+                data: [
+                    [{
+                        coord: [xCoord.length - 1, 0],
+                        symbol: 'none'
+                    }, {
+                        coord: [xCoord.length - 1, yAllBCWP[xCoord.length - 1]],
+                        symbol: 'none'
+                    }],
+                    [{
+                        coord: [0, yAllBCWP[xCoord.length - 1]],
+                        symbol: 'none'
+                    }, {
+                        coord: [xCoord.length - 1, yAllBCWP[xCoord.length - 1]],
+                        symbol: 'none'
+                    }],
+                ]
+            },
+            markPoint: {
+                silent: true,
+                symbol: 'circle',
+                symbolSize: 9,
+                label: {
+                    normal: {
+                        offset: [-15, -15],
+                        textStyle: {
+                            color: '#000'
+                        },
+                    },
+                },
+                itemStyle: {
+                    normal: {
+                        type: 'solid',
+                        borderColor: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: 'red' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#FFAF00' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        },
+                        borderWidth: 1,
+                        color: '#fff'
+                    }
+                },
+                data: [{
+                    coord: [xCoord.length - 1, yAllBCWP[xCoord.length - 1]]
+                }]
+            },
+            data: yAllBCWP
+        },
+        {
+            name: 'BCWS',
+            type: 'line',
+            itemStyle: {
+                normal: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0,
+                            color: '#97baf3' // 0% 处的颜色
+                        }, {
+                            offset: 1,
+                            color: '#3fa7dc' // 100% 处的颜色
+                        }],
+                        globalCoord: false // 缺省为 false
+                    }
+                }
+            },
+            markLine: {
+                silent: true,
+                lineStyle: {
+                    normal: {
+                        type: 'solid',
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#97baf3' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#3fa7dc' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        },
+                    }
+                },
+                data: [
+                    [{
+                        coord: [xCoord.length - 1, 0],
+                        symbol: 'none'
+                    }, {
+                        coord: [xCoord.length - 1, yAllBCWS[xCoord.length - 1]],
+                        symbol: 'none'
+                    }],
+                    [{
+                        coord: [0, yAllBCWS[xCoord.length - 1]],
+                        symbol: 'none'
+                    }, {
+                        coord: [xCoord.length - 1, yAllBCWS[xCoord.length - 1]],
+                        symbol: 'none'
+                    }],
+                ]
+            },
+            markPoint: {
+                silent: true,
+                symbol: 'circle',
+                symbolSize: 9,
+                label: {
+                    normal: {
+                        offset: [-15, -15],
+                        textStyle: {
+                            color: '#000'
+                        },
+                    },
+                },
+                itemStyle: {
+                    normal: {
+                        type: 'solid',
+                        borderColor: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#97baf3' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#3fa7dc' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        },
+                        borderWidth: 1,
+                        color: '#fff'
+                    }
+                },
+                data: [{
+                    coord: [xCoord.length - 1, yAllBCWS[xCoord.length - 1]]
+                }]
+            },
+            data: yAllBCWS
+        },
+        {
+            name: 'ACWP',
+            type: 'line',
+            itemStyle: {
+                normal: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0,
+                            color: '#a5efb6' // 0% 处的颜色
+                        }, {
+                            offset: 1,
+                            color: '#28a745' // 100% 处的颜色
+                        }],
+                        globalCoord: false // 缺省为 false
+                    }
+                }
+            },
+            markLine: {
+                silent: true,
+                lineStyle: {
+                    normal: {
+                        type: 'solid',
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#a5efb6' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#28a745' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        },
+                    }
+                },
+                data: [
+                    [{
+                        coord: [xCoord.length - 1, 0],
+                        symbol: 'none'
+                    }, {
+                        coord: [xCoord.length - 1, yAllACWP[xCoord.length - 1]],
+                        symbol: 'none'
+                    }],
+                    [{
+                        coord: [0, yAllACWP[xCoord.length - 1]],
+                        symbol: 'none'
+                    }, {
+                        coord: [xCoord.length - 1, yAllACWP[xCoord.length - 1]],
+                        symbol: 'none'
+                    }],
+                ]
+            },
+            markPoint: {
+                silent: true,
+                symbol: 'circle',
+                symbolSize: 9,
+                label: {
+                    normal: {
+                        offset: [-15, -15],
+                        textStyle: {
+                            color: '#000'
+                        },
+                    },
+                },
+                itemStyle: {
+                    normal: {
+                        type: 'solid',
+                        borderColor: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#a5efb6' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#28a745' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        },
+                        borderWidth: 1,
+                        color: '#fff'
+                    }
+                },
+                data: [{
+                    coord: [xCoord.length - 1, yAllACWP[xCoord.length - 1]]
+                }]
+            },
+            data: yAllACWP
+        },
+    ]
+};
 
-    //折线图节点数字求和
-    // yAll = yData.reduce(function(sum, value) {
-    //     return sum + value
-    // })
-    // yAllB = yDataB.reduce(function(sum, value) {
-    //     return sum + value
-    // })
-    // yAllC = yDataC.reduce(function(sum, value) {
-    //     return sum + value
-    // })
-    //
-    // //折线图节点数字求和 数组
-    // yDataSort = yData.reduce(function(sum, value) {
-    //     var all = sum.length === 0 ? 0 : sum[sum.length - 1];
-    //     sum.push(all + value)
-    //     return sum
-    // }, [])
-    // yDataSortB = yDataB.reduce(function(sum, value) {
-    //     var all = sum.length === 0 ? 0 : sum[sum.length - 1];
-    //     sum.push(all + value)
-    //     return sum
-    // }, [])
-    // yDataSortC = yDataC.reduce(function(sum, value) {
-    //     var all = sum.length === 0 ? 0 : sum[sum.length - 1];
-    //     sum.push(all + value)
-    //     return sum
-    // }, [])
-    //
-    // //纵坐标重点max值
-    // yCoord = Math.ceil(yAll * 1.15)
+if (option && typeof option === "object") {
+    myChart.setOption(option, true)
+}
+
+// 前进运动函数
+function fwGantt() {
+
+    //甘特图部分
+    g++
+
+    // 每次运动自身加一天 为后面暂停重启动服务
+    pauseDate = new Date(+pauseDate + oneDay)
+
+    //  开始运动
+    var runDate = new Date((valueStart / 1000 + speed * g) * 1000)
+    project.setTimeLines([{
+            date: valueFinish,
+            text: endName,
+            position: endPos,
+            style: "width:" + endW + "px;background:" + endColor + ";"
+        },
+        {
+            date: runDate,
+            text: runName,
+            position: runPos,
+            style: "width:" + runW + "px;background:" + runColor + ";"
+        }
+    ]);
+    project.scrollToDate(runDate)
+
+    //echarts部分
+    let yAllBCWPCrd = yAllBCWP.slice(g, g + oneMonth)
+    let yAllBCWSCrd = yAllBCWS.slice(g, g + oneMonth)
+    let yAllACWPCrd = yAllACWP.slice(g, g + oneMonth)
+
+    var moreDay = [pauseDate.getFullYear(), pauseDate.getMonth() + 1, pauseDate.getDate()].join('-')
+
+    vxCoord.shift() //去掉日期数组的第一个值
+    vxCoord.push(moreDay) //把新的日期加到数组里去
+
+    option = {
+        title: {
+            text: '黑沙洲水道航道整治二期工程',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'line',
+            },
+        },
+        legend: {
+            right: '2%',
+            top: '8%',
+            data: ['BCWP', 'BCWS', 'ACWP']
+        },
+        xAxis: {
+            type: 'category',
+            name: '时间',
+            boundaryGap: false,
+            splitLine: {
+                show: false
+            },
+            data: vxCoord,
+        },
+        yAxis: {
+            type: 'value',
+            name: '总金额',
+            min: 0,
+            max: yCoord,
+            splitLine: {
+                show: false
+            },
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        series: [{
+                name: 'BCWP',
+                type: 'line',
+                itemStyle: {
+                    normal: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: 'red' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#FFAF00' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        }
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    lineStyle: {
+                        normal: {
+                            type: 'dashed',
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'red' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#FFAF00' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                        }
+                    },
+                    data: [
+                        [{
+                            coord: [xCoord.length - 1, 0],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllBCWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                        [{
+                            coord: [0, yAllBCWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllBCWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                    ]
+                },
+                markPoint: {
+                    silent: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        normal: {
+                            offset: [-15, -15],
+                            textStyle: {
+                                color: '#000'
+                            },
+                        },
+                    },
+                    itemStyle: {
+                        normal: {
+                            type: 'solid',
+                            show: true,
+                            borderColor: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'red' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#FFAF00' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                            color: '#fff'
+                        }
+                    },
+                    data: [{
+                        coord: [xCoord.length - 1, yAllBCWPCrd[xCoord.length - 1]]
+                    }]
+                },
+                data: yAllBCWPCrd
+            },
+            {
+                name: 'BCWS',
+                type: 'line',
+                itemStyle: {
+                    normal: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#97baf3' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#3fa7dc' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        }
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    lineStyle: {
+                        normal: {
+                            type: 'dashed',
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#97baf3' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#3fa7dc' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                        }
+                    },
+                    data: [
+                        [{
+                            coord: [vxCoord.length - 1, 0],
+                            symbol: 'none'
+                        }, {
+                            coord: [vxCoord.length - 1, yAllBCWSCrd[vxCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                        [{
+                            coord: [0, yAllBCWSCrd[vxCoord.length - 1]],
+                            symbol: 'none'
+                        }, {
+                            coord: [vxCoord.length - 1, yAllBCWSCrd[vxCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                    ]
+                },
+                markPoint: {
+                    silent: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        normal: {
+                            offset: [-15, -15],
+                            textStyle: {
+                                color: '#000'
+                            },
+                        },
+                    },
+                    itemStyle: {
+                        normal: {
+                            type: 'solid',
+                            show: true,
+                            borderColor: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#97baf3' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#3fa7dc' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                            color: '#fff'
+                        }
+                    },
+                    data: [{
+                        coord: [vxCoord.length - 1, yAllBCWSCrd[vxCoord.length - 1]]
+                    }]
+                },
+                data: yAllBCWSCrd
+            },
+            {
+                name: 'ACWP',
+                type: 'line',
+                itemStyle: {
+                    normal: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#a5efb6' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#28a745' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        }
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    lineStyle: {
+                        normal: {
+                            type: 'dashed',
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#a5efb6' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#28a745' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                        }
+                    },
+                    data: [
+                        [{
+                            coord: [xCoord.length - 1, 0],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllACWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                        [{
+                            coord: [0, yAllACWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllACWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                    ]
+                },
+                markPoint: {
+                    silent: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        normal: {
+                            offset: [-15, -15],
+                            textStyle: {
+                                color: '#000'
+                            },
+                        },
+                    },
+                    itemStyle: {
+                        normal: {
+                            type: 'solid',
+                            show: true,
+                            borderColor: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#a5efb6' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#28a745' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                            color: '#fff'
+                        }
+                    },
+                    data: [{
+                        coord: [xCoord.length - 1, yAllACWPCrd[xCoord.length - 1]]
+                    }]
+                },
+                data: yAllACWPCrd
+            }
+        ]
+    }
+
+    if (option && typeof option === "object") {
+        myChart.setOption(option, true)
+    }
+
+    if (runDate / 1000 >= valueFinish / 1000) {
+        clearInterval(timer)
+    }
+}
+
+// 后退运动函数
+function bkGantt() {
+
+    let timeChooseInputValueArray = timeChooseInput.value.split(' ')
+    let timeChooseInputPlaceholderArray = timeChooseInput.placeholder.split(' ')
+
+    valueStart = timeChooseInputValueArray[0] ? new Date(timeChooseInputValueArray[0]) : new Date(timeChooseInputPlaceholderArray[0])
+    valueFinish = timeChooseInputValueArray[2] ? new Date(timeChooseInputValueArray[2]) : new Date(timeChooseInputPlaceholderArray[2])
+
+    //甘特图部分
+    g = g - 1
+    //  开始运动
+    var runDate = new Date((valueStart / 1000 + speed * g) * 1000)
+    project.setTimeLines([{
+            date: valueFinish,
+            text: endName,
+            position: endPos,
+            style: "width:" + endW + "px;background:" + endColor + ";"
+        },
+        {
+            date: runDate,
+            text: runName,
+            position: runPos,
+            style: "width:" + runW + "px;background:" + runColor + ";"
+        }
+    ]);
+    project.scrollToDate(runDate)
+
+    //echarts部分
+    let yAllBCWPCrd = yAllBCWP.slice(g, g + oneMonth)
+    let yAllBCWSCrd = yAllBCWS.slice(g, g + oneMonth)
+    let yAllACWPCrd = yAllACWP.slice(g, g + oneMonth)
+
+    var newDay = new Date(+beginDate + oneDay * (30 + g)) //生成一个月后新的一天
+    var moreDay = [newDay.getFullYear(), newDay.getMonth() + 1, newDay.getDate()].join('-')
+
+    xCoord.shift() //去掉日期数组的第一个值
+    xCoord.push(moreDay) //把新的日期加到数组里去
+
+    option = {
+        title: {
+            text: '黑沙洲水道航道整治二期工程',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'line',
+            },
+        },
+        legend: {
+            right: '2%',
+            top: '8%',
+            data: ['BCWP', 'BCWS', 'ACWP']
+        },
+        xAxis: {
+            type: 'category',
+            name: '时间',
+            boundaryGap: false,
+            splitLine: {
+                show: false
+            },
+            data: xCoord,
+        },
+        yAxis: {
+            type: 'value',
+            name: '总金额',
+            min: 0,
+            max: yCoord,
+            splitLine: {
+                show: false
+            },
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        series: [{
+                name: 'BCWP',
+                type: 'line',
+                itemStyle: {
+                    normal: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: 'red' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#FFAF00' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        }
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    lineStyle: {
+                        normal: {
+                            type: 'dashed',
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'red' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#FFAF00' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                        }
+                    },
+                    data: [
+                        [{
+                            coord: [xCoord.length - 1, 0],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllBCWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                        [{
+                            coord: [0, yAllBCWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllBCWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                    ]
+                },
+                markPoint: {
+                    silent: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        normal: {
+                            offset: [-15, -15],
+                            textStyle: {
+                                color: '#000'
+                            },
+                        },
+                    },
+                    itemStyle: {
+                        normal: {
+                            type: 'solid',
+                            show: true,
+                            borderColor: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'red' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#FFAF00' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                            color: '#fff'
+                        }
+                    },
+                    data: [{
+                        coord: [xCoord.length - 1, yAllBCWPCrd[xCoord.length - 1]]
+                    }]
+                },
+                data: yAllBCWPCrd
+            },
+            {
+                name: 'BCWS',
+                type: 'line',
+                itemStyle: {
+                    normal: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#97baf3' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#3fa7dc' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        }
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    lineStyle: {
+                        normal: {
+                            type: 'dashed',
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#97baf3' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#3fa7dc' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                        }
+                    },
+                    data: [
+                        [{
+                            coord: [xCoord.length - 1, 0],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllBCWSCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                        [{
+                            coord: [0, yAllBCWSCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllBCWSCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                    ]
+                },
+                markPoint: {
+                    silent: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        normal: {
+                            offset: [-15, -15],
+                            textStyle: {
+                                color: '#000'
+                            },
+                        },
+                    },
+                    itemStyle: {
+                        normal: {
+                            type: 'solid',
+                            show: true,
+                            borderColor: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#97baf3' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#3fa7dc' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                            color: '#fff'
+                        }
+                    },
+                    data: [{
+                        coord: [xCoord.length - 1, yAllBCWSCrd[xCoord.length - 1]]
+                    }]
+                },
+                data: yAllBCWSCrd
+            },
+            {
+                name: 'ACWP',
+                type: 'line',
+                itemStyle: {
+                    normal: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0,
+                                color: '#a5efb6' // 0% 处的颜色
+                            }, {
+                                offset: 1,
+                                color: '#28a745' // 100% 处的颜色
+                            }],
+                            globalCoord: false // 缺省为 false
+                        }
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    lineStyle: {
+                        normal: {
+                            type: 'dashed',
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#a5efb6' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#28a745' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                        }
+                    },
+                    data: [
+                        [{
+                            coord: [xCoord.length - 1, 0],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllACWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                        [{
+                            coord: [0, yAllACWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }, {
+                            coord: [xCoord.length - 1, yAllACWPCrd[xCoord.length - 1]],
+                            symbol: 'none'
+                        }],
+                    ]
+                },
+                markPoint: {
+                    silent: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        normal: {
+                            offset: [-15, -15],
+                            textStyle: {
+                                color: '#000'
+                            },
+                        },
+                    },
+                    itemStyle: {
+                        normal: {
+                            type: 'solid',
+                            show: true,
+                            borderColor: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: '#a5efb6' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: '#28a745' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            },
+                            color: '#fff'
+                        }
+                    },
+                    data: [{
+                        coord: [xCoord.length - 1, yAllACWPCrd[xCoord.length - 1]]
+                    }]
+                },
+                data: yAllACWPCrd
+            }
+        ]
+    }
+
+    if (option && typeof option === "object") {
+        myChart.setOption(option, true)
+    }
+
+
+
+    if (runDate / 1000 <= valueStart / 1000) {
+        clearInterval(timer)
+    }
+}
+
+/**
+    运动计时器函数
+    开始函数
+**/
+function startGantt() {
+    clearInterval(timer)
+    timer = setInterval(fwGantt, time)
+}
+
+// 停止函数
+function pauseGantt() {
+    clearInterval(timer)
+}
+
+// 快退按钮事件
+fBackBtn.onclick = function() {
+    clearInterval(timer)
+    timer = setInterval(bkGantt, time / 2)
+}
+
+// 后退按钮事件
+backBtn.onclick = function() {
+    clearInterval(timer)
+    timer = setInterval(bkGantt, time)
+}
+
+// 开始按钮事件
+beginBtn.onclick = function() {
+    // 清空横坐标
+    vxCoord = []
+
+    // 日期选择框有选择的时候的时间字符串数组
+    let timeChooseInputValueArray = timeChooseInput.value.split(' ')
+    // 默认时间字符串数组
+    let timeChooseInputPlaceholderArray = timeChooseInput.placeholder.split(' ')
+
+    // 判断横坐标运动开始时间和结束时间
+    valueStart = timeChooseInputValueArray[0] ? new Date(timeChooseInputValueArray[0]) : new Date(timeChooseInputPlaceholderArray[0])
+    valueFinish = timeChooseInputValueArray[2] ? new Date(timeChooseInputValueArray[2]) : new Date(timeChooseInputPlaceholderArray[2])
+
+    /*
+        计算横坐标最大值
+        如果puaseDate是空就把上面开始运动时间赋给它
+        否则就是自己
+    */
+    log(valueStart)
+    log(pauseDate)
+    pauseDate = pauseDate == null ? valueStart : pauseDate
+    log(pauseDate)
+
+    for (var i = 0; i < 31; i++) {
+        var valueNow = new Date(+pauseDate - oneDay * i); //开始日期加i天
+        var xItem = [valueNow.getFullYear(), valueNow.getMonth() + 1, valueNow.getDate()].join('-'); //取日期节点坐横坐标
+        vxCoord.push(xItem);
+    }
+
+    // 颠倒数组
+    vxCoord = vxCoord.reverse()
+
+    startGantt()
+}
+
+// 暂停按钮事件
+pauseBtn.onclick = function() {
+    pauseGantt()
+}
+
+// 停止按钮事件
+stopBtn.onclick = function() {
+    clearInterval(timer)
+
+    // 回复状态
+    g = 0
+    pauseDate = null
+
+    project.setTimeLines([{
+        date: startDate,
+        text: ' ',
+        position: runPos,
+        style: "width:" + tdyW + "px;background:transparent;"
+    }])
 
     option = {
         title: {
@@ -242,17 +1427,17 @@ function runGantt() {
                     },
                     data: [
                         [{
-                            coord: [xCoord.length-1, 0],
+                            coord: [xCoord.length - 1, 0],
                             symbol: 'none'
                         }, {
-                            coord: [xCoord.length-1, yAllBCWP[xCoord.length-1]],
+                            coord: [xCoord.length - 1, yAllBCWP[xCoord.length - 1]],
                             symbol: 'none'
                         }],
                         [{
-                            coord: [0, yAllBCWP[xCoord.length-1]],
+                            coord: [0, yAllBCWP[xCoord.length - 1]],
                             symbol: 'none'
                         }, {
-                            coord: [xCoord.length-1, yAllBCWP[xCoord.length-1]],
+                            coord: [xCoord.length - 1, yAllBCWP[xCoord.length - 1]],
                             symbol: 'none'
                         }],
                     ]
@@ -292,7 +1477,7 @@ function runGantt() {
                         }
                     },
                     data: [{
-                        coord: [xCoord.length-1, yAllBCWP[xCoord.length-1]]
+                        coord: [xCoord.length - 1, yAllBCWP[xCoord.length - 1]]
                     }]
                 },
                 data: yAllBCWP
@@ -343,17 +1528,17 @@ function runGantt() {
                     },
                     data: [
                         [{
-                            coord: [xCoord.length-1, 0],
+                            coord: [xCoord.length - 1, 0],
                             symbol: 'none'
                         }, {
-                            coord: [xCoord.length-1, yAllBCWS[xCoord.length-1]],
+                            coord: [xCoord.length - 1, yAllBCWS[xCoord.length - 1]],
                             symbol: 'none'
                         }],
                         [{
-                            coord: [0, yAllBCWS[xCoord.length-1]],
+                            coord: [0, yAllBCWS[xCoord.length - 1]],
                             symbol: 'none'
                         }, {
-                            coord: [xCoord.length-1, yAllBCWS[xCoord.length-1]],
+                            coord: [xCoord.length - 1, yAllBCWS[xCoord.length - 1]],
                             symbol: 'none'
                         }],
                     ]
@@ -393,7 +1578,7 @@ function runGantt() {
                         }
                     },
                     data: [{
-                        coord: [xCoord.length-1, yAllBCWS[xCoord.length-1]]
+                        coord: [xCoord.length - 1, yAllBCWS[xCoord.length - 1]]
                     }]
                 },
                 data: yAllBCWS
@@ -444,17 +1629,17 @@ function runGantt() {
                     },
                     data: [
                         [{
-                            coord: [xCoord.length-1, 0],
+                            coord: [xCoord.length - 1, 0],
                             symbol: 'none'
                         }, {
-                            coord: [xCoord.length-1, yAllACWP[xCoord.length-1]],
+                            coord: [xCoord.length - 1, yAllACWP[xCoord.length - 1]],
                             symbol: 'none'
                         }],
                         [{
-                            coord: [0, yAllACWP[xCoord.length-1]],
+                            coord: [0, yAllACWP[xCoord.length - 1]],
                             symbol: 'none'
                         }, {
-                            coord: [xCoord.length-1, yAllACWP[xCoord.length-1]],
+                            coord: [xCoord.length - 1, yAllACWP[xCoord.length - 1]],
                             symbol: 'none'
                         }],
                     ]
@@ -494,522 +1679,41 @@ function runGantt() {
                         }
                     },
                     data: [{
-                        coord: [xCoord.length-1, yAllACWP[xCoord.length-1]]
+                        coord: [xCoord.length - 1, yAllACWP[xCoord.length - 1]]
                     }]
                 },
                 data: yAllACWP
             },
         ]
     };
+
     if (option && typeof option === "object") {
         myChart.setOption(option, true)
     }
-
-    // 前进运动函数
-    function fwGantt() {
-
-        let timeChooseInputValueArray = timeChooseInput.value.split(' ')
-        let timeChooseInputPlaceholderArray = timeChooseInput.placeholder.split(' ')
-
-        valueStart = timeChooseInputValueArray[0] ? new Date(timeChooseInputValueArray[0]) : new Date(timeChooseInputPlaceholderArray[0])
-        valueFinish = timeChooseInputValueArray[2] ? new Date(timeChooseInputValueArray[2]) : new Date(timeChooseInputPlaceholderArray[2])
-
-        //甘特图部分
-        g = g + 1
-        //  开始运动
-        var runDate = new Date((valueStart / 1000 + speed * g) * 1000)
-        project.setTimeLines([{
-                date: valueFinish,
-                text: endName,
-                position: endPos,
-                style: "width:" + endW + "px;background:" + endColor + ";"
-            },
-            {
-                date: runDate,
-                text: runName,
-                position: runPos,
-                style: "width:" + runW + "px;background:" + runColor + ";"
-            }
-        ]);
-        project.scrollToDate(runDate)
-        //echarts部分
-        e = e + 1
-
-        let yAllBCWPCrd = yAllBCWP.slice(e, e+oneMonth)
-        let yAllBCWSCrd = yAllBCWS.slice(e, e+oneMonth)
-        let yAllACWPCrd = yAllACWP.slice(e, e+oneMonth)
-
-        var newDay = new Date(+beginDate + oneDay * (30 + e)) //生成一个月后新的一天
-        var moreDay = [newDay.getFullYear(), newDay.getMonth() + 1, newDay.getDate()].join('-')
-
-        xCoord.shift() //去掉日期数组的第一个值
-        xCoord.push(moreDay) //把新的日期加到数组里去
-
-
-        option = {
-            title: {
-                text: '黑沙洲水道航道整治二期工程',
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'line',
-                },
-            },
-            legend: {
-                right: '2%',
-                top: '8%',
-                data: ['BCWP', 'BCWS', 'ACWP']
-            },
-            xAxis: {
-                type: 'category',
-                name: '时间',
-                boundaryGap: false,
-                splitLine: {
-                    show: false
-                },
-                data: xCoord,
-            },
-            yAxis: {
-                type: 'value',
-                name: '总金额',
-                min: 0,
-                max: yCoord,
-                splitLine: {
-                    show: false
-                },
-            },
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                containLabel: true
-            },
-            series: [{
-                    name: 'BCWP',
-                    type: 'line',
-                    itemStyle: {
-                        normal: {
-                            color: {
-                                type: 'linear',
-                                x: 0,
-                                y: 0,
-                                x2: 0,
-                                y2: 1,
-                                colorStops: [{
-                                    offset: 0,
-                                    color: 'red' // 0% 处的颜色
-                                }, {
-                                    offset: 1,
-                                    color: '#FFAF00' // 100% 处的颜色
-                                }],
-                                globalCoord: false // 缺省为 false
-                            }
-                        }
-                    },
-                    markLine: {
-                        silent: true,
-                        lineStyle: {
-                            normal: {
-                                type: 'dashed',
-                                color: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: 'red' // 0% 处的颜色
-                                    }, {
-                                        offset: 1,
-                                        color: '#FFAF00' // 100% 处的颜色
-                                    }],
-                                    globalCoord: false // 缺省为 false
-                                },
-                            }
-                        },
-                        data: [
-                            [{
-                                coord: [xCoord.length-1, 0],
-                                symbol: 'none'
-                            }, {
-                                coord: [xCoord.length-1, yAllBCWPCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }],
-                            [{
-                                coord: [0, yAllBCWPCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }, {
-                                coord: [xCoord.length-1, yAllBCWPCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }],
-                        ]
-                    },
-                    markPoint: {
-                        silent: true,
-                        symbol: 'circle',
-                        symbolSize: 8,
-                        label: {
-                            normal: {
-                                offset: [-15, -15],
-                                textStyle: {
-                                    color: '#000'
-                                },
-                            },
-                        },
-                        itemStyle: {
-                            normal: {
-                                type: 'solid',
-                                show: true,
-                                borderColor: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: 'red' // 0% 处的颜色
-                                    }, {
-                                        offset: 1,
-                                        color: '#FFAF00' // 100% 处的颜色
-                                    }],
-                                    globalCoord: false // 缺省为 false
-                                },
-                                color: '#fff'
-                            }
-                        },
-                        data: [{
-                            coord: [xCoord.length-1, yAllBCWPCrd[xCoord.length-1]]
-                        }]
-                    },
-                    data: yAllBCWPCrd
-                },
-                {
-                    name: 'BCWS',
-                    type: 'line',
-                    itemStyle: {
-                        normal: {
-                            color: {
-                                type: 'linear',
-                                x: 0,
-                                y: 0,
-                                x2: 0,
-                                y2: 1,
-                                colorStops: [{
-                                    offset: 0,
-                                    color: '#97baf3' // 0% 处的颜色
-                                }, {
-                                    offset: 1,
-                                    color: '#3fa7dc' // 100% 处的颜色
-                                }],
-                                globalCoord: false // 缺省为 false
-                            }
-                        }
-                    },
-                    markLine: {
-                        silent: true,
-                        lineStyle: {
-                            normal: {
-                                type: 'dashed',
-                                color: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#97baf3' // 0% 处的颜色
-                                    }, {
-                                        offset: 1,
-                                        color: '#3fa7dc' // 100% 处的颜色
-                                    }],
-                                    globalCoord: false // 缺省为 false
-                                },
-                            }
-                        },
-                        data: [
-                            [{
-                                coord: [xCoord.length-1, 0],
-                                symbol: 'none'
-                            }, {
-                                coord: [xCoord.length-1, yAllBCWSCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }],
-                            [{
-                                coord: [0, yAllBCWSCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }, {
-                                coord: [xCoord.length-1, yAllBCWSCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }],
-                        ]
-                    },
-                    markPoint: {
-                        silent: true,
-                        symbol: 'circle',
-                        symbolSize: 8,
-                        label: {
-                            normal: {
-                                offset: [-15, -15],
-                                textStyle: {
-                                    color: '#000'
-                                },
-                            },
-                        },
-                        itemStyle: {
-                            normal: {
-                                type: 'solid',
-                                show: true,
-                                borderColor: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#97baf3' // 0% 处的颜色
-                                    }, {
-                                        offset: 1,
-                                        color: '#3fa7dc' // 100% 处的颜色
-                                    }],
-                                    globalCoord: false // 缺省为 false
-                                },
-                                color: '#fff'
-                            }
-                        },
-                        data: [{
-                            coord: [xCoord.length-1, yAllBCWSCrd[xCoord.length-1]]
-                        }]
-                    },
-                    data: yAllBCWSCrd
-                },
-                {
-                    name: 'ACWP',
-                    type: 'line',
-                    itemStyle: {
-                        normal: {
-                            color: {
-                                type: 'linear',
-                                x: 0,
-                                y: 0,
-                                x2: 0,
-                                y2: 1,
-                                colorStops: [{
-                                    offset: 0,
-                                    color: '#a5efb6' // 0% 处的颜色
-                                }, {
-                                    offset: 1,
-                                    color: '#28a745' // 100% 处的颜色
-                                }],
-                                globalCoord: false // 缺省为 false
-                            }
-                        }
-                    },
-                    markLine: {
-                        silent: true,
-                        lineStyle: {
-                            normal: {
-                                type: 'dashed',
-                                color: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#a5efb6' // 0% 处的颜色
-                                    }, {
-                                        offset: 1,
-                                        color: '#28a745' // 100% 处的颜色
-                                    }],
-                                    globalCoord: false // 缺省为 false
-                                },
-                            }
-                        },
-                        data: [
-                            [{
-                                coord: [xCoord.length-1, 0],
-                                symbol: 'none'
-                            }, {
-                                coord: [xCoord.length-1, yAllACWPCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }],
-                            [{
-                                coord: [0, yAllACWPCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }, {
-                                coord: [xCoord.length-1, yAllACWPCrd[xCoord.length-1]],
-                                symbol: 'none'
-                            }],
-                        ]
-                    },
-                    markPoint: {
-                        silent: true,
-                        symbol: 'circle',
-                        symbolSize: 8,
-                        label: {
-                            normal: {
-                                offset: [-15, -15],
-                                textStyle: {
-                                    color: '#000'
-                                },
-                            },
-                        },
-                        itemStyle: {
-                            normal: {
-                                type: 'solid',
-                                show: true,
-                                borderColor: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#a5efb6' // 0% 处的颜色
-                                    }, {
-                                        offset: 1,
-                                        color: '#28a745' // 100% 处的颜色
-                                    }],
-                                    globalCoord: false // 缺省为 false
-                                },
-                                color: '#fff'
-                            }
-                        },
-                        data: [{
-                            coord: [xCoord.length-1, yAllACWPCrd[xCoord.length-1]]
-                        }]
-                    },
-                    data: yAllACWPCrd
-                }
-            ]
-        }
-
-        if (option && typeof option === "object") {
-            myChart.setOption(option, true)
-        }
-
-        if (runDate / 1000 >= valueFinish / 1000) {
-            clearInterval(timer)
-        }
-    }
-
-    // 后退运动函数
-    function bkGantt() {
-
-        let timeChooseInputValueArray = timeChooseInput.value.split(' ')
-        let timeChooseInputPlaceholderArray = timeChooseInput.placeholder.split(' ')
-
-        valueStart = timeChooseInputValueArray[0] ? new Date(timeChooseInputValueArray[0]) : new Date(timeChooseInputPlaceholderArray[0])
-        valueFinish = timeChooseInputValueArray[2] ? new Date(timeChooseInputValueArray[2]) : new Date(timeChooseInputPlaceholderArray[2])
-
-        //甘特图部分
-        g = g - 1
-        //  开始运动
-        var runDate = new Date((valueStart / 1000 + speed * g) * 1000)
-        project.setTimeLines([{
-                date: valueFinish,
-                text: endName,
-                position: endPos,
-                style: "width:" + endW + "px;background:" + endColor + ";"
-            },
-            {
-                date: runDate,
-                text: runName,
-                position: runPos,
-                style: "width:" + runW + "px;background:" + runColor + ";"
-            }
-        ]);
-        project.scrollToDate(runDate)
-
-
-
-        if (runDate / 1000 <= valueStart / 1000) {
-            clearInterval(timer)
-        }
-    }
-
-    /**
-        运动计时器函数
-        开始函数
-    **/
-    function startGantt() {
-        clearInterval(timer)
-        timer = setInterval(fwGantt, time)
-    }
-
-    // 停止函数
-    function pauseGantt() {
-        clearInterval(timer)
-    }
-
-    // 快退按钮事件
-    fBackBtn.onclick = function() {
-        clearInterval(timer)
-        timer = setInterval(bkGantt, time / 2)
-    }
-
-    // 后退按钮事件
-    backBtn.onclick = function() {
-        clearInterval(timer)
-        timer = setInterval(bkGantt, time)
-    }
-
-    // 开始按钮事件
-    beginBtn.onclick = function() {
-        startGantt()
-    }
-
-    // 暂停按钮事件
-    pauseBtn.onclick = function() {
-        pauseGantt()
-    }
-
-    // 停止按钮事件
-    stopBtn.onclick = function() {
-        clearInterval(timer)
-        g = 0
-
-        project.setTimeLines([{
-            date: startDate,
-            text: ' ',
-            position: runPos,
-            style: "width:" + tdyW + "px;background:transparent;"
-        }])
-    }
-
-    // 前进按钮事件
-    // forwardBtn.onclick = function() {
-    //
-    // }
-
-    // 快进按钮事件
-    fForwardBtn.onclick = function() {
-        clearInterval(timer)
-        timer = setInterval(fwGantt, time / 2)
-    }
-
-    // 查看今天事件
-    todayBtn.onclick = function() {
-        let today = new Date()
-
-        todayText = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
-
-        project.setTimeLines([{
-            date: today,
-            text: todayText,
-            position: runPos,
-            style: "width:" + tdyW + "px;background:" + tdyColor + ";"
-        }])
-        project.scrollToDate(today)
-    }
 }
 
-runGantt()
+// 前进按钮事件
+// forwardBtn.onclick = function() {
+//
+// }
+
+// 快进按钮事件
+fForwardBtn.onclick = function() {
+    clearInterval(timer)
+    timer = setInterval(fwGantt, time / 2)
+}
+
+// 查看今天事件
+todayBtn.onclick = function() {
+    let today = new Date()
+
+    todayText = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
+
+    project.setTimeLines([{
+        date: today,
+        text: todayText,
+        position: runPos,
+        style: "width:" + tdyW + "px;background:" + tdyColor + ";"
+    }])
+    project.scrollToDate(today)
+}
