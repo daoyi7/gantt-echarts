@@ -34,7 +34,9 @@
 }
 
 .btn {
-    padding: 5px 8px;
+    padding: 0px 8px;
+    height: 25px;
+    line-height: 25px;
     background: #32ceff;
     color: #fff;
     border: none;
@@ -44,4 +46,10 @@
 
 .btn:focus, .btn:active {
     outline: none;
+}
+
+.btn.forbd {
+    /*pointer-events:none;*/
+    cursor:not-allowed;
+    background: gray;
 }
