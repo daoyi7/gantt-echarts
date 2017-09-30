@@ -50,55 +50,30 @@
 }
 
 .btn.forbd {
+    /*pointer-events:none;*/
     cursor: not-allowed;
     background: gray;
 }
 
-.btn.forbd>* {
-    pointer-events: none;
-}
-
 .dragLine {
     position: relative;
-    display: inline-block;
-    height: 3px;
+    width: 120px;
+    height: 5px;
     background: #32ceff;
-    width: 300px;
-    margin-left: 8px;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 3px;
+    margin-left: 15px;
 }
 
-.dragLine .dragBtn {
+#dragBtn {
     position: absolute;
-    top: -3px;
-    left: 0;
+    top: -2px;
+    left: -4px;
     width: 8px;
     height: 8px;
-    background: gray;
-    cursor: pointer;
     border-radius: 50%;
+    background: gray;
+    display: inline-block;
+    z-index: 99;
 }
-
-.dragLine .dragBtn .dragTips {
-    position: absolute;
-    font-size: 14px;
-    font-family: 微软雅黑;
-    bottom: -20px;
-    left: 0px;
-    width: 120px;
-    height: 15px;
-    line-height: 15px;
-    background: white;
-}
-
-
-/*.dragLine .dragBtn .dragTips:after {
-    content: "";
-    width: 0px;
-    height: 0px;
-    border-top: 6px solid blue;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    display: block;
-    margin-left: 11px;
-}*/

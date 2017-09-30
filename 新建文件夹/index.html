@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="main.css">
 </head>
 
-<body onselectstart="return false">
+<body>
     <div class="control">
         <input type="text" id="timeChooseInput" placeholder="2016-12-09 - 2017-12-02">
         <button id="fBackBtn" class="btn forbd">快退</button>
@@ -18,12 +18,10 @@
         <button id="stopBtn" class="btn forbd">停止</button>
         <!-- <button id="forwardBtn" class="btn">前进</button> -->
         <button id="fForwardBtn" class="btn forbd">快进</button>
-        <button id="initBtn" class="btn">初始化</button>
-        <div id="dragLine" class="dragLine">
-            <div id="dragBtn" class="dragBtn">
-                <div id="dragTips" class="dragTips"></div>
-            </div>
-        </div>
+        <button id="todayBtn" class="btn">查看今天</button>
+        <!-- <div class="dragLine">
+            <div id="dragBtn" draggable="true"></div>
+        </div> -->
     </div>
     <div class="main">
         <div class="gantt">
@@ -40,7 +38,6 @@
     <script src="js/echarts.js" type="text/javascript"></script>
     <script src="js/laydate/laydate.js"></script>
     <script src="js/runGantt.js" type="text/javascript"></script>
-    <script src="js/dragScroll.js" type="text/javascript"></script>
     <script type="text/javascript">
         var project = new PlusProject();
         project.setStyle("width:100%;height:250px");
@@ -76,6 +73,18 @@
             }
         })
     </script>
+    <!-- <script type="text/javascript">
+        var d = document.querySelector("#dragBtn")
+
+        d.ondrag = function(e) {
+            this.style.left = e.offsetX + 'px'
+            console.log(e)
+        }
+        // d.ondrop = function(e) {
+        //     this.style.left = e.offsetX + 'px'
+        // }
+
+    </script> -->
 </body>
 
 </html>

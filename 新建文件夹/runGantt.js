@@ -12,7 +12,6 @@ const log = console.log.bind(console)
 /**
     绑定所有按钮
 **/
-const BTN = document.querySelectorAll(".btn")   // 所有按钮
 const fBackBtn = document.querySelector("#fBackBtn") //快退
 const backBtn = document.querySelector("#backBtn") //后退
 const beginBtn = document.querySelector("#beginBtn") //开始按钮
@@ -20,7 +19,7 @@ const pauseBtn = document.querySelector("#pauseBtn") //暂停
 const stopBtn = document.querySelector("#stopBtn") //停止
 //const forwardBtn = document.querySelector("#forwardBtn") //前进
 const fForwardBtn = document.querySelector("#fForwardBtn") //快进
-const initBtn = document.querySelector("#initBtn") //查看今天
+const todayBtn = document.querySelector("#todayBtn") //查看今天
 const timeChooseInput = document.querySelector("#timeChooseInput") // 日期选择框
 
 /**
@@ -65,9 +64,9 @@ const FinishDateGantt = '2017-12-02T17:00:00'
 /**
     计算开始日期并转成中国标准时间
 **/
-const startDateFN = new Date(startDateGantt)
+const startDateFN = new Date(dataEchart.data[0].SGRQ)
 const startDate = new Date(startDateFN - ((startDateFN.getHours() * 60 * 60 * 1000) + (startDateFN.getMinutes() * 60 * 1000) + (startDateFN.getSeconds() * 1000)))
-const finishDateFN = new Date(FinishDateGantt)
+const finishDateFN = new Date(dataEchart.data[LEN - 1].SGRQ)
 const finishDate = new Date(finishDateFN - ((finishDateFN.getHours() * 60 * 60 * 1000) + (finishDateFN.getMinutes() * 60 * 1000) + (finishDateFN.getSeconds() * 1000)))
 
 /**
@@ -195,7 +194,7 @@ function drawEchart(x, y1, y2, y3) {
         legend: {
             right: '2%',
             top: '8%',
-            data: ['已完工作预算费用', '计划工作预算费用', '已完成工作实际费用']
+            data: ['BCWP', 'BCWS', 'ACWP']
         },
         xAxis: {
             type: 'category',
@@ -222,7 +221,7 @@ function drawEchart(x, y1, y2, y3) {
             containLabel: true
         },
         series: [{
-                name: '已完工作预算费用',
+                name: 'BCWP',
                 type: 'line',
                 itemStyle: {
                     normal: {
@@ -323,7 +322,7 @@ function drawEchart(x, y1, y2, y3) {
                 data: y1
             },
             {
-                name: '计划工作预算费用',
+                name: 'BCWS',
                 type: 'line',
                 itemStyle: {
                     normal: {
@@ -424,7 +423,7 @@ function drawEchart(x, y1, y2, y3) {
                 data: y2
             },
             {
-                name: '已完成工作实际费用',
+                name: 'ACWP',
                 type: 'line',
                 itemStyle: {
                     normal: {
@@ -598,13 +597,6 @@ function fwGantt() {
         pauseBtn.className += " forbd"
         fForwardBtn.className += " forbd"
         beginBtn.classList.remove("forbd")
-
-        beginBtn.setAttribute('disabled', 'disabled')
-        stopBtn.removeAttribute('disabled')
-        fBackBtn.removeAttribute('disabled')
-        backBtn.removeAttribute('disabled')
-        pauseBtn.removeAttribute('disabled')
-        fForwardBtn.removeAttribute('disabled')
 
         // 甘特图标线消失
         project.setTimeLines([{
@@ -816,27 +808,29 @@ function stopBtnFn() {
 
 
 /**
-    查看某天按钮点击事件
-    为进度条事件所用
+    查看今天按钮点击时间
 **/
-function queryFn(dt) {
+function todayBtnFn() {
     stopBtnFn()
 
-    if ((dt.getMonth() + 1) < 10 && (dt.getDate()) > 10) {
-        dtText = dt.getFullYear() + '-0' + (dt.getMonth() + 1) + '-' + dt.getDate()
+    let today = new Date()
+    let todayText
+
+    if ((today.getMonth() + 1) < 10 && (today.getDate()) > 10) {
+        todayText = today.getFullYear() + '-0' + (today.getMonth() + 1) + '-' + today.getDate()
     }
-    if ((dt.getMonth() + 1) < 10 && (dt.getDate()) < 10) {
-        dtText = dt.getFullYear() + '-0' + (dt.getMonth() + 1) + '-0' + dt.getDate()
+    if ((today.getMonth() + 1) < 10 && (today.getDate()) < 10) {
+        todayText = today.getFullYear() + '-0' + (today.getMonth() + 1) + '-0' + today.getDate()
     }
-    if ((dt.getMonth() + 1) > 10 && (dt.getDate()) < 10) {
-        dtText = dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-0' + dt.getDate()
+    if ((today.getMonth() + 1) > 10 && (today.getDate()) < 10) {
+        todayText = today.getFullYear() + '-' + (today.getMonth() + 1) + '-0' + today.getDate()
     }
-    if ((dt.getMonth() + 1) > 10 && (dt.getDate()) > 10) {
-        dtText = dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-' + dt.getDate()
+    if ((today.getMonth() + 1) > 10 && (today.getDate()) > 10) {
+        todayText = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
     }
 
     // 查找今天在日期数组的序数index
-    let dataIdx = dataTime.indexOf(dtText)
+    let dataIdx = dataTime.indexOf(todayText)
 
     // 根据序数返回相应的金额总和以及前一个月的总和 作为折线图
     const yTodayBCWP = yAllBCWP.slice(dataIdx + 1, dataIdx + 32)
@@ -848,18 +842,18 @@ function queryFn(dt) {
 
     // 画甘特图的标记线到今天
     project.setTimeLines([{
-        date: dt,
-        text: dtText,
+        date: today,
+        text: todayText,
         position: runPos,
         style: "width:" + tdyW + "px;background:" + tdyColor + ";"
     }])
-    project.scrollToDate(dt)
+    project.scrollToDate(today)
 
     // 画Echart
     drawEchart(xTodayCoord, yTodayBCWP, yTodayBCWS, yTodayACWP)
 }
 /**
-    查看某天按钮点击事件完毕
+    查看今天按钮点击时间完毕
 **/
 
 
@@ -874,13 +868,6 @@ fBackBtn.onclick = function() {
     pauseBtn.classList.remove("forbd")
     stopBtn.classList.remove("forbd")
     fForwardBtn.classList.remove("forbd")
-
-    this.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-    backBtn.removeAttribute('disabled')
-    pauseBtn.removeAttribute('disabled')
-    stopBtn.removeAttribute('disabled')
-    fForwardBtn.removeAttribute('disabled')
 
     clearInterval(timer)
     timer = setInterval(bkGantt, time / 2)
@@ -901,13 +888,6 @@ backBtn.onclick = function() {
     pauseBtn.classList.remove("forbd")
     stopBtn.classList.remove("forbd")
     fForwardBtn.classList.remove("forbd")
-
-    this.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-    fBackBtn.removeAttribute('disabled')
-    pauseBtn.removeAttribute('disabled')
-    stopBtn.removeAttribute('disabled')
-    fForwardBtn.removeAttribute('disabled')
 
     clearInterval(timer)
     timer = setInterval(bkGantt, time)
@@ -930,14 +910,6 @@ beginBtn.onclick = function() {
 
     // 禁止播放按钮
     this.className += " forbd"
-
-    this.setAttribute('disabled', 'disabled')
-    fBackBtn.removeAttribute('disabled')
-    backBtn.removeAttribute('disabled')
-    pauseBtn.removeAttribute('disabled')
-    stopBtn.removeAttribute('disabled')
-    fForwardBtn.removeAttribute('disabled')
-
     beginBtnFn()
 }
 /**
@@ -955,13 +927,6 @@ pauseBtn.onclick = function() {
     backBtn.classList.remove("forbd")
     stopBtn.classList.remove("forbd")
     fForwardBtn.classList.remove("forbd")
-
-    this.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-    fBackBtn.removeAttribute('disabled')
-    backBtn.removeAttribute('disabled')
-    stopBtn.removeAttribute('disabled')
-    fForwardBtn.removeAttribute('disabled')
 
     pauseGantt()
 }
@@ -984,13 +949,6 @@ stopBtn.onclick = function() {
     // 解禁播放按钮
     beginBtn.classList.remove("forbd")
 
-    this.setAttribute('disabled', 'disabled')
-    fBackBtn.setAttribute('disabled', 'disabled')
-    backBtn.setAttribute('disabled', 'disabled')
-    pauseBtn.setAttribute('disabled', 'disabled')
-    fForwardBtn.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-
     stopBtnFn()
 }
 /**
@@ -1010,13 +968,6 @@ fForwardBtn.onclick = function() {
     pauseBtn.classList.remove("forbd")
     stopBtn.classList.remove("forbd")
 
-    fForwardBtn.setAttribute('disabled', 'disabled')
-    fBackBtn.removeAttribute('disabled')
-    backBtn.removeAttribute('disabled')
-    beginBtn.removeAttribute('disabled')
-    pauseBtn.removeAttribute('disabled')
-    stopBtn.removeAttribute('disabled')
-
     clearInterval(timer)
     timer = setInterval(fwGantt, time / 2)
 }
@@ -1026,40 +977,11 @@ fForwardBtn.onclick = function() {
 
 
 /**
-    初始化按钮
+    查看今天事件
 **/
-initBtn.onclick = function() {
-    // 播放和自己不禁止 其他禁止
-    fBackBtn.className += " forbd"
-    backBtn.className += " forbd"
-    beginBtn.classList.remove("forbd")
-    pauseBtn.className += " forbd"
-    stopBtn.className += " forbd"
-    fForwardBtn.className += " forbd"
-
-    fBackBtn.setAttribute('disabled', 'disabled')
-    backBtn.setAttribute('disabled', 'disabled')
-    pauseBtn.setAttribute('disabled', 'disabled')
-    stopBtn.setAttribute('disabled', 'disabled')
-    fForwardBtn.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-
-    stopBtnFn()
+todayBtn.onclick = function() {
+    todayBtnFn()
 }
 /**
-    初始化按钮事件完毕
-**/
-
-
-/**
-    禁止按钮事件
-**/
-for(let i=0;i<BTN.length;i++) {
-    if(BTN[i].classList.contains("forbd")) {
-        // log(BTN[i].getAttribute('id'))
-        BTN[i].setAttribute('disabled', 'disabled')
-    }
-}
-/**
-    禁止按钮事件完毕
+    查看今天事件完毕
 **/
