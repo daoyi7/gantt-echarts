@@ -18,7 +18,8 @@ let timeChooseInputPlaceholderArray = timeChooseInput.placeholder.split(' ')
 // 判断横坐标运动开始时间和结束时间
 valueStart = timeChooseInputValueArray[0] ? new Date(timeChooseInputValueArray[0]) : new Date(timeChooseInputPlaceholderArray[0])
 
-dragTips.innerText = dataTime[0]
+// log(valueStart)
+// dragTips.innerText = dataTime[0]
 
 if ((finishDate.getMonth() + 1) < 10 && (finishDate.getDate()) > 10) {
     finishDateText = finishDate.getFullYear() + '-0' + (finishDate.getMonth() + 1) + '-' + finishDate.getDate()
@@ -37,10 +38,10 @@ realDataTime = dataTime.slice(0, dataTime.indexOf(finishDateText) + 1)
 
 
 //获取元素的绝对位置方法封装
-function getPosition(node) {
-    let left = node.offsetLeft; //获取元素相对于其父元素的left值var left
-    let top = node.offsetTop;
-    current = node.offsetParent; // 取得元素的offsetParent
+function getPosition(point) {
+    let left = point.offsetLeft; //获取元素相对于其父元素的left值var left
+    let top = point.offsetTop;
+    current = point.offsetParent; // 取得元素的offsetParent
     　　
     if (current != null) {　　
         left += current.offsetLeft;　　

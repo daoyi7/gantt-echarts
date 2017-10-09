@@ -536,6 +536,31 @@ function drawEchart(x, y1, y2, y3) {
 **/
 
 /**
+    日期转YY-MM-DD
+**/
+function DateToYMD(dateSTD) {
+    let dateSTDText
+
+    if ((dateSTD.getMonth() + 1) < 10 && (dateSTD.getDate()) >= 10) {
+        dateSTDText = dateSTD.getFullYear() + '-0' + (dateSTD.getMonth() + 1) + '-' + dateSTD.getDate()
+    }
+    if ((dateSTD.getMonth() + 1) < 10 && (dateSTD.getDate()) < 10) {
+        dateSTDText = dateSTD.getFullYear() + '-0' + (dateSTD.getMonth() + 1) + '-0' + dateSTD.getDate()
+    }
+    if ((dateSTD.getMonth() + 1) >= 10 && (dateSTD.getDate()) < 10) {
+        dateSTDText = dateSTD.getFullYear() + '-' + (dateSTD.getMonth() + 1) + '-0' + dateSTD.getDate()
+    }
+    if ((dateSTD.getMonth() + 1) >= 10 && (dateSTD.getDate()) >= 10) {
+        dateSTDText = dateSTD.getFullYear() + '-' + (dateSTD.getMonth() + 1) + '-' + dateSTD.getDate()
+    }
+
+    return dateSTDText
+}
+/**
+    日期转YY-MM-DD完毕
+**/
+
+/**
     提前画静态初始化Echart
 **/
 drawEchart(xCoord, yAllBCWP, yAllBCWS, yAllACWP)
@@ -552,12 +577,14 @@ function fwGantt() {
     //甘特图部分
     g++
 
+    // log(valueFinish)
     // 每次运动自身加一天 为后面暂停重启动服务
     pauseDate = new Date(+pauseDate + oneDay)
 
+    dragTips.innerText = DateToYMD(pauseDate)
+
     //  甘特图开始运动 以speed的速度
-    let runDate = new Date((timeFir / 1000 + speed * g) * 1000)
-    // let runDate = valueStart
+    let runDate = new Date((pauseDate / 1000 + speed * g) * 1000)
 
     project.setTimeLines([{
             date: valueFinish,
@@ -756,21 +783,8 @@ function beginBtnFn() {
     */
     pauseDate = pauseDate == null ? valueStart : pauseDate
 
-    if ((pauseDate.getMonth() + 1) < 10 && (pauseDate.getDate()) > 10) {
-        pauseDateText = pauseDate.getFullYear() + '-0' + (pauseDate.getMonth() + 1) + '-' + pauseDate.getDate()
-    }
-    if ((pauseDate.getMonth() + 1) < 10 && (pauseDate.getDate()) < 10) {
-        pauseDateText = pauseDate.getFullYear() + '-0' + (pauseDate.getMonth() + 1) + '-0' + pauseDate.getDate()
-    }
-    if ((pauseDate.getMonth() + 1) > 10 && (pauseDate.getDate()) < 10) {
-        pauseDateText = pauseDate.getFullYear() + '-' + (pauseDate.getMonth() + 1) + '-0' + pauseDate.getDate()
-    }
-    if ((pauseDate.getMonth() + 1) > 10 && (pauseDate.getDate()) > 10) {
-        pauseDateText = pauseDate.getFullYear() + '-' + (pauseDate.getMonth() + 1) + '-' + pauseDate.getDate()
-    }
-
     // 查找起始日期在日期数组的序数index
-    let dataIdx = dataTime.indexOf(pauseDateText)
+    let dataIdx = dataTime.indexOf(DateToYMD(pauseDate))
 
     g = dataIdx
 
