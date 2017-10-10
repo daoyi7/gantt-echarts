@@ -12,7 +12,7 @@ const log = console.log.bind(console)
 /**
     绑定所有按钮
 **/
-const BTN = document.querySelectorAll(".btn")   // 所有按钮
+const BTN = document.querySelectorAll(".btn") // 所有按钮
 const fBackBtn = document.querySelector("#fBackBtn") //快退
 const backBtn = document.querySelector("#backBtn") //后退
 const beginBtn = document.querySelector("#beginBtn") //开始按钮
@@ -577,14 +577,20 @@ function fwGantt() {
     //甘特图部分
     g++
 
-    // log(valueFinish)
     // 每次运动自身加一天 为后面暂停重启动服务
     pauseDate = new Date(+pauseDate + oneDay)
 
+    // 滑动小块的日期文字
     dragTips.innerText = DateToYMD(pauseDate)
 
+    // 运动过程中当前日期所占总日期长度的百分比
+    let dtPercent = (pauseDate.getTime() - valueStart.getTime()) / (valueFinish.getTime() - valueStart.getTime())
+
+    // 滑动小块运动  左边距left = 滑动横线的总长度乘百分比
+    dragBtn.style.left = dragLine.offsetWidth * dtPercent + 'px'
+
     //  甘特图开始运动 以speed的速度
-    let runDate = new Date((pauseDate / 1000 + speed * g) * 1000)
+    let runDate = new Date((timeFir / 1000 + speed * g) * 1000)
 
     project.setTimeLines([{
             date: valueFinish,
@@ -640,6 +646,9 @@ function fwGantt() {
             position: runPos,
             style: "width:" + tdyW + "px;background:transparent;"
         }])
+
+        // 滑动小块到最右
+        dragBtn.style.left = '100%'
     }
 }
 /**
@@ -677,8 +686,17 @@ function bkGantt() {
     // 每次运动自身减掉一天
     pauseDate = new Date(+pauseDate - oneDay)
 
+    // 滑动小块的日期文字
+    dragTips.innerText = DateToYMD(pauseDate)
+
+    // 运动过程中当前日期所占总日期长度的百分比
+    let dtPercent = (pauseDate.getTime() - valueStart.getTime()) / (valueFinish.getTime() - valueStart.getTime())
+
+    // 滑动小块运动  左边距left = 滑动横线的总长度乘百分比
+    dragBtn.style.left = dragLine.offsetWidth * dtPercent + 'px'
+
     //  开始运动
-    var runDate = new Date((valueStart / 1000 + speed * g) * 1000)
+    var runDate = new Date((timeFir / 1000 + speed * g) * 1000)
     project.setTimeLines([{
             date: valueFinish,
             text: endName,
@@ -815,6 +833,7 @@ function stopBtnFn() {
     g = 0
     pauseDate = null
 
+    // 甘特图标记线初始化
     project.setTimeLines([{
         date: startDate,
         text: ' ',
@@ -822,7 +841,24 @@ function stopBtnFn() {
         style: "width:" + tdyW + "px;background:transparent;"
     }])
 
+    // Echart初始化
     drawEchart(xCoord, yAllBCWP, yAllBCWS, yAllACWP)
+
+    // 按钮状态设置
+    fBackBtn.className += " forbd"
+    backBtn.className += " forbd"
+    beginBtn.classList.remove("forbd")
+    pauseBtn.className += " forbd"
+    stopBtn.className += " forbd"
+    fForwardBtn.className += " forbd"
+
+    fBackBtn.setAttribute('disabled', 'disabled')
+    backBtn.setAttribute('disabled', 'disabled')
+    pauseBtn.setAttribute('disabled', 'disabled')
+    stopBtn.setAttribute('disabled', 'disabled')
+    fForwardBtn.setAttribute('disabled', 'disabled')
+    beginBtn.removeAttribute('disabled')
+
 }
 /**
     停止按钮点击事件完毕
@@ -836,21 +872,8 @@ function stopBtnFn() {
 function queryFn(dt) {
     stopBtnFn()
 
-    if ((dt.getMonth() + 1) < 10 && (dt.getDate()) > 10) {
-        dtText = dt.getFullYear() + '-0' + (dt.getMonth() + 1) + '-' + dt.getDate()
-    }
-    if ((dt.getMonth() + 1) < 10 && (dt.getDate()) < 10) {
-        dtText = dt.getFullYear() + '-0' + (dt.getMonth() + 1) + '-0' + dt.getDate()
-    }
-    if ((dt.getMonth() + 1) > 10 && (dt.getDate()) < 10) {
-        dtText = dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-0' + dt.getDate()
-    }
-    if ((dt.getMonth() + 1) > 10 && (dt.getDate()) > 10) {
-        dtText = dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-' + dt.getDate()
-    }
-
     // 查找今天在日期数组的序数index
-    let dataIdx = dataTime.indexOf(dtText)
+    let dataIdx = dataTime.indexOf(DateToYMD(dt))
 
     // 根据序数返回相应的金额总和以及前一个月的总和 作为折线图
     const yTodayBCWP = yAllBCWP.slice(dataIdx + 1, dataIdx + 32)
@@ -863,7 +886,7 @@ function queryFn(dt) {
     // 画甘特图的标记线到今天
     project.setTimeLines([{
         date: dt,
-        text: dtText,
+        text: DateToYMD(dt),
         position: runPos,
         style: "width:" + tdyW + "px;background:" + tdyColor + ";"
     }])
@@ -988,24 +1011,11 @@ pauseBtn.onclick = function() {
     停止按钮事件
 **/
 stopBtn.onclick = function() {
-    // 禁止其他按钮
-    this.className += " forbd"
-    fBackBtn.className += " forbd"
-    backBtn.className += " forbd"
-    pauseBtn.className += " forbd"
-    fForwardBtn.className += " forbd"
-
-    // 解禁播放按钮
-    beginBtn.classList.remove("forbd")
-
-    this.setAttribute('disabled', 'disabled')
-    fBackBtn.setAttribute('disabled', 'disabled')
-    backBtn.setAttribute('disabled', 'disabled')
-    pauseBtn.setAttribute('disabled', 'disabled')
-    fForwardBtn.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-
     stopBtnFn()
+
+    // 滑动小块初始化
+    dragBtn.style.left = 0 + 'px'
+    dragTips.innerText = ' '
 }
 /**
     完停止按钮事件毕
@@ -1043,22 +1053,11 @@ fForwardBtn.onclick = function() {
     初始化按钮
 **/
 initBtn.onclick = function() {
-    // 播放和自己不禁止 其他禁止
-    fBackBtn.className += " forbd"
-    backBtn.className += " forbd"
-    beginBtn.classList.remove("forbd")
-    pauseBtn.className += " forbd"
-    stopBtn.className += " forbd"
-    fForwardBtn.className += " forbd"
-
-    fBackBtn.setAttribute('disabled', 'disabled')
-    backBtn.setAttribute('disabled', 'disabled')
-    pauseBtn.setAttribute('disabled', 'disabled')
-    stopBtn.setAttribute('disabled', 'disabled')
-    fForwardBtn.setAttribute('disabled', 'disabled')
-    beginBtn.removeAttribute('disabled')
-
     stopBtnFn()
+
+    // 滑动小块初始化
+    dragBtn.style.left = 0 + 'px'
+    dragTips.innerText = ' '
 }
 /**
     初始化按钮事件完毕
@@ -1068,8 +1067,8 @@ initBtn.onclick = function() {
 /**
     禁止按钮事件
 **/
-for(let i=0;i<BTN.length;i++) {
-    if(BTN[i].classList.contains("forbd")) {
+for (let i = 0; i < BTN.length; i++) {
+    if (BTN[i].classList.contains("forbd")) {
         // log(BTN[i].getAttribute('id'))
         BTN[i].setAttribute('disabled', 'disabled')
     }
