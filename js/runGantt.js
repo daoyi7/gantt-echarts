@@ -622,6 +622,7 @@ function fwGantt() {
     if (runDate / 1000 >= valueFinish / 1000) {
         clearInterval(timer)
 
+        g = 0
         pauseDate = null
 
         // 按钮回复初始状态
@@ -632,12 +633,12 @@ function fwGantt() {
         fForwardBtn.className += " forbd"
         beginBtn.classList.remove("forbd")
 
-        beginBtn.setAttribute('disabled', 'disabled')
-        stopBtn.removeAttribute('disabled')
-        fBackBtn.removeAttribute('disabled')
-        backBtn.removeAttribute('disabled')
-        pauseBtn.removeAttribute('disabled')
-        fForwardBtn.removeAttribute('disabled')
+        beginBtn.removeAttribute('disabled')
+        stopBtn.setAttribute('disabled', 'disabled')
+        fBackBtn.setAttribute('disabled', 'disabled')
+        backBtn.setAttribute('disabled', 'disabled')
+        pauseBtn.setAttribute('disabled', 'disabled')
+        fForwardBtn.setAttribute('disabled', 'disabled')
 
         // 甘特图标线消失
         project.setTimeLines([{
@@ -727,6 +728,7 @@ function bkGantt() {
     if (runDate / 1000 <= valueStart / 1000) {
         clearInterval(timer)
 
+        g = 0
         pauseDate = null
 
         // 按钮回复初始状态
@@ -736,6 +738,13 @@ function bkGantt() {
         pauseBtn.className += " forbd"
         fForwardBtn.className += " forbd"
         beginBtn.classList.remove("forbd")
+        
+        beginBtn.removeAttribute('disabled')
+        stopBtn.setAttribute('disabled', 'disabled')
+        fBackBtn.setAttribute('disabled', 'disabled')
+        backBtn.setAttribute('disabled', 'disabled')
+        pauseBtn.setAttribute('disabled', 'disabled')
+        fForwardBtn.setAttribute('disabled', 'disabled')
 
         // 甘特图标线消失
         project.setTimeLines([{
@@ -744,6 +753,9 @@ function bkGantt() {
             position: runPos,
             style: "width:" + tdyW + "px;background:transparent;"
         }])
+
+
+        // stopBtnFn()
     }
 }
 /**

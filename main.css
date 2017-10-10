@@ -111,5 +111,5 @@
     top: 28px !important;
 }
 .layui-form-select dl dd.layui-this {
-    background-color: #32ceff;
+    background-color: #32ceff !important;
 }
