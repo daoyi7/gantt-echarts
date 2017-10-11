@@ -608,9 +608,9 @@ function fwGantt() {
     project.scrollToDate(runDate)
 
     //echarts部分
-    let yAllBCWPCrd = yAllBCWP.slice(g, g + oneMonth)
-    let yAllBCWSCrd = yAllBCWS.slice(g, g + oneMonth)
-    let yAllACWPCrd = yAllACWP.slice(g, g + oneMonth)
+    let yAllBCWPCrd = yAllBCWP.slice(g + 1, g + oneMonth + 1)
+    let yAllBCWSCrd = yAllBCWS.slice(g + 1, g + oneMonth + 1)
+    let yAllACWPCrd = yAllACWP.slice(g + 1, g + oneMonth + 1)
 
     var moreDay = [pauseDate.getFullYear(), pauseDate.getMonth() + 1, pauseDate.getDate()].join('-')
 
@@ -662,9 +662,6 @@ function fwGantt() {
 **/
 function bkGantt() {
 
-    // 清空横坐标
-    vxCoord = []
-
     // 日期选择框有选择的时候的时间字符串数组
     let timeChooseInputValueArray = timeChooseInput.value.split(' ')
     // 默认时间字符串数组
@@ -714,18 +711,24 @@ function bkGantt() {
     project.scrollToDate(runDate)
 
     //echarts部分
-    let yAllBCWPCrd = yAllBCWP.slice(g, g + oneMonth)
-    let yAllBCWSCrd = yAllBCWS.slice(g, g + oneMonth)
-    let yAllACWPCrd = yAllACWP.slice(g, g + oneMonth)
+    let yAllBCWPCrd = yAllBCWP.slice(g + 1, g + oneMonth + 1)
+    let yAllBCWSCrd = yAllBCWS.slice(g + 1, g + oneMonth + 1)
+    let yAllACWPCrd = yAllACWP.slice(g + 1, g + oneMonth + 1)
 
-    var moreDay = [pauseDate.getFullYear(), pauseDate.getMonth() + 1, pauseDate.getDate()].join('-')
+    /**
+        后退函数是去掉数组最后面
+        同时
+        往数组最前面加当前日期的前一个月的日期数字
+    **/
+    let moreDay = new Date(pauseDate.getTime() - oneMonth * oneDay)
+    let moreDayText = [moreDay.getFullYear(), moreDay.getMonth() + 1, moreDay.getDate()].join('-')
 
-    xCoord.shift() //去掉日期数组的第一个值
-    xCoord.push(moreDay) //把新的日期加到数组里去
+    vxCoord.pop() //去掉日期数组的第一个值
+    vxCoord.unshift(moreDayText) //把新的日期加到数组里去
 
-    drawEchart(xCoord, yAllBCWPCrd, yAllBCWSCrd, yAllACWPCrd)
+    drawEchart(vxCoord, yAllBCWPCrd, yAllBCWSCrd, yAllACWPCrd)
 
-    if (runDate / 1000 <= valueStart / 1000) {
+    if (runDate / 1000 < valueStart / 1000) {
         clearInterval(timer)
 
         g = 0
@@ -738,7 +741,7 @@ function bkGantt() {
         pauseBtn.className += " forbd"
         fForwardBtn.className += " forbd"
         beginBtn.classList.remove("forbd")
-        
+
         beginBtn.removeAttribute('disabled')
         stopBtn.setAttribute('disabled', 'disabled')
         fBackBtn.setAttribute('disabled', 'disabled')
@@ -811,7 +814,7 @@ function beginBtnFn() {
         如果puaseDate是空就把上面开始运动时间赋给它
         否则就是自己
     */
-    pauseDate = pauseDate == null ? valueStart : pauseDate
+    pauseDate = pauseDate == null ? new Date(valueStart.getTime() - oneDay) : pauseDate
 
     // 查找起始日期在日期数组的序数index
     let dataIdx = dataTime.indexOf(DateToYMD(pauseDate))
